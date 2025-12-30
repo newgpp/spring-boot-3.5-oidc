@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpEntity;
@@ -63,6 +64,7 @@ public class AuthController {
     private String redirectUri;
 
     private final RestTemplate restTemplate = new RestTemplate();
+    @Qualifier("stringRedisTemplate")
     @Autowired
     private StringRedisTemplate redisTemplate;
     @Autowired
