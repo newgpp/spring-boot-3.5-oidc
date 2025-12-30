@@ -6,4 +6,12 @@ keycloak:
   auth-server-url: http://localhost:8080
   client-id: charge-management-system
   client-secret: zjKUfx2HjtGINCdSqhxFMLL8lAOdb0NZ
-  redirect-uri: http://localhost:8081/callback
+  redirect-uri: http://localhost:8081/api/v1/auth/callback
+
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 123456
+

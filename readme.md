@@ -1,4 +1,4 @@
-#### keycloak 初始化
+#### 环境初始化
 
 - docker启动keycloak
 ```shell
@@ -9,10 +9,11 @@ docker run -d --name keycloak -p 8080:8080 -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_A
 - 创建user
 
 
-#### 运行服务
+- docker启动redis
 
-访问 http://localhost:8081/login
-跳转到 keycloak
-登录
-跳转回 http://localhost:8081/callback
-显示 登录成功
+```shell
+docker run -d --name my-redis -p 6379:6379 redis redis-server --requirepass "123456"
+
+```
+
+
