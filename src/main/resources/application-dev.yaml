@@ -1,0 +1,9 @@
+server:
+  port: 8081
+
+keycloak:
+  realm: felix-company
+  auth-server-url: http://localhost:8080
+  client-id: charge-management-system
+  client-secret: zjKUfx2HjtGINCdSqhxFMLL8lAOdb0NZ
+  redirect-uri: http://localhost:8081/callback
