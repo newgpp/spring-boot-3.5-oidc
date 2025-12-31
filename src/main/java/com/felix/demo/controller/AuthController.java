@@ -89,7 +89,7 @@ public class AuthController {
     @GetMapping("/callback")
     public Map<String, Object> callback(@RequestParam String code) {
 
-        log.info("============> /callback code={}",code);
+        log.info("============> /callback code={}", code);
 
         // 1.换 token
         String tokenUrl = authServer + "/realms/" + realm + "/protocol/openid-connect/token";
@@ -245,6 +245,9 @@ public class AuthController {
      */
     @PostMapping("/logout")
     public void logout(@RequestHeader("Authorization") String authorization) {
+
+        log.info("============> /logout authorization={}", authorization);
+
         String loginToken = authorization.replace("Bearer ", "");
         String redisKey = "login:token:" + loginToken;
 
