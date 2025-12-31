@@ -24,24 +24,8 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 前端（Vue / React）
- * │
- * │ ① 请求登录
- * ▼
- * 后端（Auth API）
- * │
- * │ ② 重定向到 Keycloak
- * ▼
- * Keycloak
- * │
- * │ ③ 登录成功 → code
- * ▼
- * 后端 /auth/callback
- * │
- * │ ④ 用 code 换 token
- * │ ⑤ 存 Redis
- * ▼
- * 前端（拿到 sessionId / accessToken）
+ * 前后端分离
+ * 对接keycloak实现sso登录
  */
 @Slf4j
 @RestController
@@ -105,40 +89,38 @@ public class AuthController {
     @GetMapping("/callback")
     public Map<String, Object> callback(@RequestParam String code) {
 
-        // 1. 换 token
-        String tokenUrl = authServer + "/realms/" + realm + "/protocol/openid-connect/token";
+        log.info("============> /callback code={}",code);
 
+        // 1.换 token
+        String tokenUrl = authServer + "/realms/" + realm + "/protocol/openid-connect/token";
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "authorization_code");
         body.add("client_id", clientId);
         body.add("client_secret", clientSecret);
         body.add("code", code);
         body.add("redirect_uri", redirectUri);
-
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
         Map<String, Object> tokenResp = restTemplate.postForObject(
                 tokenUrl,
                 new HttpEntity<>(body, headers),
                 Map.class
         );
-
         String accessToken = (String) tokenResp.get("access_token");
         String refreshToken = (String) tokenResp.get("refresh_token");
         Integer refreshExpiresIn = (Integer) tokenResp.get("refresh_expires_in");
         String idToken = (String) tokenResp.get("id_token");
 
-        // 2. 解析用户
+        //2.解析用户
         Map<String, Object> claims = parseIdToken(idToken);
         String userId = (String) claims.get("sub");
         String username = (String) claims.get("preferred_username");
         String email = (String) claims.get("email");
 
-        // 3. 生成你自己的 token
+        //3.生成你自己的 token
         String loginToken = generateToken();
 
-        // 4. 存 Redis（统一结构）
+        //4.存 Redis（统一结构）
         String redisKey = "login:token:" + loginToken;
         redisTemplate.opsForHash().putAll(redisKey, Map.of(
                 "userId", userId,
@@ -149,7 +131,7 @@ public class AuthController {
         ));
         redisTemplate.expire(redisKey, refreshExpiresIn, TimeUnit.SECONDS);
 
-        // 5. 返回前端
+        //5.返回前端
         return Map.of(
                 "token", loginToken,
                 "expiresIn", refreshExpiresIn,
@@ -207,14 +189,14 @@ public class AuthController {
         String loginToken = authorization.replace("Bearer ", "");
         String oldKey = "login:token:" + loginToken;
 
-        // 1️⃣ 从 Hash 取 refreshToken
+        //1.从 Hash 取 refreshToken
         Map<Object, Object> entries = redisTemplate.opsForHash().entries(oldKey);
         if (entries == null || entries.isEmpty()) {
             throw new RuntimeException("登录已过期，请重新登录");
         }
         String refreshToken = entries.get("refreshToken").toString();
 
-        // 2️⃣ 刷新 Keycloak token
+        //2.刷新 Keycloak token
         String tokenUrl = authServer + "/realms/" + realm + "/protocol/openid-connect/token";
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
@@ -266,23 +248,20 @@ public class AuthController {
         String loginToken = authorization.replace("Bearer ", "");
         String redisKey = "login:token:" + loginToken;
 
-        // 1️⃣ 修正：从 Hash 结构中获取 refreshToken
+        //1.从 Hash 结构中获取 refreshToken
         Object refreshTokenObj = redisTemplate.opsForHash().get(redisKey, "refreshToken");
 
         if (refreshTokenObj != null) {
             String refreshToken = refreshTokenObj.toString();
             try {
-                // 2️⃣ 通知 Keycloak 注销
+                //2.通知 Keycloak 注销
                 String logoutUrl = authServer + "/realms/" + realm + "/protocol/openid-connect/logout";
-
                 MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
                 body.add("client_id", clientId);
                 body.add("client_secret", clientSecret);
                 body.add("refresh_token", refreshToken);
-
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
                 // 使用 postForEntity 或 exchange 确保请求发出
                 restTemplate.postForEntity(logoutUrl, new HttpEntity<>(body, headers), String.class);
             } catch (Exception e) {
@@ -291,7 +270,7 @@ public class AuthController {
             }
         }
 
-        // 3️⃣ 清理 Redis（无论 Keycloak 那边是否注销成功，本地会话都应销毁）
+        //3.清理 Redis（无论 Keycloak 那边是否注销成功，本地会话都应销毁）
         redisTemplate.delete(redisKey);
     }
 
