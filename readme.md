@@ -30,6 +30,7 @@ docker run -d \
   -p 3306:3306 \
   -e MYSQL_ROOT_PASSWORD=123456 \
   -v mariadb-data:/var/lib/mysql \
+  -v mariadb-config:/etc/mysql/conf.d \
   mariadb:10.11
 
 ```
