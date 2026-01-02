@@ -1,18 +1,23 @@
 server:
-  port: 8081
+  port: 10052
 
 keycloak:
   realm: felix-company
-  auth-server-url: http://localhost:8080
+  # 后端换 token 时使用容器内部地址（推荐！稳定、安全、不依赖主机网络）
+  auth-server-url: http://keycloak:8080
   client-id: charge-management-system
-  client-secret: zjKUfx2HjtGINCdSqhxFMLL8lAOdb0NZ
-#  redirect-uri: http://localhost:8081/api/v1/auth/callback
-  redirect-uri: http://localhost:5173/callback #接入前端
+  client-secret: RPOsEpn2dj01gxMb8PKcxwrOGwEhB89b
+  # 前端回调地址（Keycloak 会重定向到这里）
+  redirect-uri: http://localhost:5173/callback
+  # 新增：前端登录时跳转到的 Keycloak 登录页地址（浏览器可见地址）
+  # 用于前端直接跳转，或后端 /login 接口生成跳转时覆盖默认值
+  frontend-auth-url: http://localhost:8080
+
 
 spring:
   data:
     redis:
-      host: localhost
+      host: redisdb
       port: 6379
       password: 123456
 

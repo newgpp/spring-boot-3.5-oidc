@@ -47,6 +47,10 @@ public class AuthController {
     @Value("${keycloak.redirect-uri}")
     private String redirectUri;
 
+    @Value("${keycloak.frontend-auth-url}")
+    private String frontendAuthUrl;
+
+
     private final RestTemplate restTemplate = new RestTemplate();
     @Qualifier("stringRedisTemplate")
     @Autowired
@@ -59,7 +63,7 @@ public class AuthController {
      */
     @GetMapping("/login")
     public void login(HttpServletResponse response) throws Exception {
-        String url = authServer + "/realms/" + realm + "/protocol/openid-connect/auth"
+        String url = frontendAuthUrl + "/realms/" + realm + "/protocol/openid-connect/auth"
                 + "?client_id=" + clientId
                 + "&response_type=code"
                 + "&scope=openid profile email"
