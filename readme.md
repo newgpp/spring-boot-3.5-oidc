@@ -14,11 +14,13 @@ docker run -d \
   --network infra-net \
   --restart unless-stopped \
   -p 6379:6379 \
-  -v /data/redis:/data \
+  -v redisdb-data:/data \
   redis:7.2 \
   redis-server --requirepass "123456" --appendonly yes
 
 ```
+
+- docker启动mariadb
 
 ```shell
 docker run -d \
@@ -27,7 +29,7 @@ docker run -d \
   --restart unless-stopped \
   -p 3306:3306 \
   -e MYSQL_ROOT_PASSWORD=123456 \
-  -v /data/mariadb:/var/lib/mysql \
+  -v mariadb-data:/var/lib/mysql \
   mariadb:10.11
 
 ```
